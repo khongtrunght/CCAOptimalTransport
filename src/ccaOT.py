@@ -6,9 +6,11 @@ import numpy as np
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
 from linear_cca import linear_cca
+from src.utils import initialze, permutation_data
 import wandb
 from utils import load_data
 import seaborn as sns
+from opw import opw
 
 
 def cross_entropy(predictions, targets, epsilon=1e-12):
@@ -105,10 +107,16 @@ class CcaOT:
         metric = kwargs.get('metric', 'euclidean')
         reg = kwargs.get('reg', 1e-1)
         numItermax = kwargs.get('numItermax', 1000)
+        algo = kwargs.get('algo', ' preserved')
 
-        cost_matrix = ot.dist(Xs[0], Xs[1], metric=metric)
-        tp_plan = ot.sinkhorn(np.ones(Xs[0].shape[0]) / Xs[0].shape[0], np.ones(
-            Xs[1].shape[0]) / Xs[1].shape[0], cost_matrix, reg=reg, numItermax=numItermax)
+        if algo == 'preserved':
+            distance, tp_plan = opw(
+                Xs[0], Xs[1], lambda1=50, lambda2=reg, delta=1)
+
+        else:  # algo == 'regularized':
+            cost_matrix = ot.dist(Xs[0], Xs[1], metric=metric)
+            tp_plan = ot.sinkhorn(np.ones(Xs[0].shape[0]) / Xs[0].shape[0], np.ones(
+                Xs[1].shape[0]) / Xs[1].shape[0], cost_matrix, reg=reg, numItermax=numItermax)
         return tp_plan
 
     def get_align_path(self, tp_plan):
@@ -212,25 +220,13 @@ def main():
     train1, train2, val1, val2, label_train1, label_train2, label_val1, label_val2 = load_data_adu(
         num_data_point=NUM_DATA_POINT)
 
-    permutation = np.random.permutation(train2.shape[0])
-    train2 = train2[permutation]
-    label_train2 = label_train2[permutation]
-    Xs = [train1, train2]
-    alignT = np.stack([permutation, np.arange(train2.shape[0])], axis=0)
 
-    # init bth
-    if init == 'partial':
-        fist_part = np.random.permutation(train2.shape[0]//2)
-        second_part = np.arange(train2.shape[0]//2, train2.shape[0])
-        part = np.concatenate([fist_part, second_part], axis=0)
-        permutation_wrong_first = permutation[part]
-        align0 = np.stack(
-            [permutation_wrong_first, np.arange(train2.shape[0])], axis=0)
-    elif init == "true":
-        align0 = alignT
-    else:
-        align0 = np.stack([np.arange(NUM_DATA_POINT),
-                           np.arange(NUM_DATA_POINT)], axis=0)
+    Xs, label_train1, label_train2, alignT = permutation_data(train1, train2, label_train1, label_train2, method='preserved')
+
+    align0 = initialze(alignT, method='random')
+
+
+
 
     ccaot = CcaOT(outdim_size=DIM_AFTER_REDUCE,
                   num_iter=NUM_ITER_MAX, reg=1e-1, num_iter_ot=10000)

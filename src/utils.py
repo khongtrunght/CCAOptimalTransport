@@ -40,3 +40,42 @@ def load_pickle(f):
         ret = thepickle.load(f)
 
     return ret
+
+
+def permutation_data(X, Y, label_X, label_Y, method='preserved'):
+    """
+    permutes the data and labels
+    """
+
+    if method == 'random':
+        perm = np.random.permutation(X.shape[0])
+    elif method == 'preserved':
+        lenY = Y.shape[0]
+        init = np.arange(lenY)
+        perm = np.concatenate([np.random.permutation(
+            init[i: min(i + 10, lenY)]) for i in range(0, lenY-1, 10)])
+
+    Y = Y[perm]
+    label_Y = label_Y[perm]
+    Xs = [X, Y]
+    alignT = np.stack([perm, np.arange(Y.shape[0])], axis=0)
+    return Xs, label_X, label_Y, alignT
+
+
+def initialze(alignT, method='random'):
+    if method == 'partial':
+        first_part = np.random.permutation(alignT.shape[0]//2)
+        second_part = np.arange(alignT.shape[0]//2, alignT.shape[0])
+        part = np.concatenate([first_part, second_part], axis=0)
+
+        permutation_wrong_first = alignT[0, part]
+        align0 = np.stack(
+            [permutation_wrong_first, np.range(alignT.shape[0])], axis=0)
+
+    elif method == "true":
+        align0 = alignT.copy()
+    else:
+        align0 = np.stack([np.arange(alignT.shape[0]),
+                          np.arange(alignT.shape[0])], axis=0)
+
+    return align0
