@@ -37,7 +37,7 @@ class CcaOT:
         self.linear_cca = linear_cca()
         self.outdim_size = outdim_size
 
-    def fit(self, Xs, align0=None, alignT=None):
+    def fit(self, Xs, align0=None, alignT=None, algo='preserved'):
 
         NUM_DATA_POINT = Xs[0].shape[0]
         if alignT is not None:
@@ -57,7 +57,7 @@ class CcaOT:
             Xs_project = self.linear_cca.transform(Xs[0], Xs[1])
 
             tp_plan = self.apply_ot(
-                Xs_project, metric=self.metric, reg=self.reg, numItermax=self.num_iter_ot)
+                Xs_project, metric=self.metric, reg=self.reg, numItermax=self.num_iter_ot, algo=algo)
 
             align = self.get_align_path(tp_plan)
 
