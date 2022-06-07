@@ -6,3 +6,4 @@ src/wandb/
 **/.pytest_cache/
 .idea/
 test/
+data/*.gz
