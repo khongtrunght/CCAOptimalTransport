@@ -6,7 +6,7 @@ import numpy as np
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
 from linear_cca import linear_cca
-from src.utils import initialze, permutation_data
+from utils import initialze, permutation_data
 import wandb
 from utils import load_data
 import seaborn as sns
@@ -220,13 +220,10 @@ def main():
     train1, train2, val1, val2, label_train1, label_train2, label_val1, label_val2 = load_data_adu(
         num_data_point=NUM_DATA_POINT)
 
-
-    Xs, label_train1, label_train2, alignT = permutation_data(train1, train2, label_train1, label_train2, method='preserved')
+    Xs, label_train1, label_train2, alignT = permutation_data(
+        train1, train2, label_train1, label_train2, method='preserved')
 
     align0 = initialze(alignT, method='random')
-
-
-
 
     ccaot = CcaOT(outdim_size=DIM_AFTER_REDUCE,
                   num_iter=NUM_ITER_MAX, reg=1e-1, num_iter_ot=10000)
