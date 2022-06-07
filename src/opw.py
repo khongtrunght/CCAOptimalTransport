@@ -3,7 +3,18 @@ import ot
 
 
 def opw(X, Y, lambda1=50, lambda2=0.1, delta=1):
+    """preserved OT
 
+    Args:
+        X (ndarray): view1
+        Y (ndarray): view2
+        lambda1 (int, optional): weight of first term. Defaults to 50.
+        lambda2 (float, optional): weight of second term. Defaults to 0.1.
+        delta (int, optional): _description_. Defaults to 1.
+
+    Returns:
+        distance, ot_plan: distance is the distance between views, ot_plan is the transport plan
+    """
     tolerance = .5e-2
     maxIter = 20
 

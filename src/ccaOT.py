@@ -37,41 +37,41 @@ class CcaOT:
         self.linear_cca = linear_cca()
         self.outdim_size = outdim_size
 
-    def fit(self, Xs, align0=None, alignT=None, algo='preserved'):
+    # def fit(self, Xs, align0=None, alignT=None, algo='preserved'):
 
-        NUM_DATA_POINT = Xs[0].shape[0]
-        if alignT is not None:
-            tp_planT = np.zeros(NUM_DATA_POINT, NUM_DATA_POINT)
-            for i in range(alignT.shape[1]):
-                tp_planT[alignT[0, i], alignT[1, i]] = 1
+    #     NUM_DATA_POINT = Xs[0].shape[0]
+    #     if alignT is not None:
+    #         tp_planT = np.zeros(NUM_DATA_POINT, NUM_DATA_POINT)
+    #         for i in range(alignT.shape[1]):
+    #             tp_planT[alignT[0, i], alignT[1, i]] = 1
 
-        if align0 is None:
-            align0 = np.stack([np.arange(NUM_DATA_POINT),
-                               np.arange(NUM_DATA_POINT)], axis=0)
+    #     if align0 is None:
+    #         align0 = np.stack([np.arange(NUM_DATA_POINT),
+    #                            np.arange(NUM_DATA_POINT)], axis=0)
 
-        for iter in range(self.num_iter):
+    #     for iter in range(self.num_iter):
 
-            Ys = self.seqInp(Xs, align0)
-            self.linear_cca.fit(Ys[0], Ys[1])
+    #         Ys = self.seqInp(Xs, align0)
+    #         self.linear_cca.fit(Ys[0], Ys[1])
 
-            Xs_project = self.linear_cca.transform(Xs[0], Xs[1])
+    #         Xs_project = self.linear_cca.transform(Xs[0], Xs[1])
 
-            tp_plan = self.apply_ot(
-                Xs_project, metric=self.metric, reg=self.reg, numItermax=self.num_iter_ot, algo=algo)
+    #         tp_plan = self.apply_ot(
+    #             Xs_project, metric=self.metric, reg=self.reg, numItermax=self.num_iter_ot, algo=algo)
 
-            align = self.get_align_path(tp_plan)
+    #         align = self.get_align_path(tp_plan)
 
-            Ys_project = self.seqInp(Xs_project, align)
+    #         Ys_project = self.seqInp(Xs_project, align)
 
-            align0 = align.copy()
+    #         align0 = align.copy()
 
-            f_norm = np.linalg.norm(Ys_project[0] - Ys_project[1])
-            wandb.log({'f_norm': f_norm}, step=iter)
+    #         f_norm = np.linalg.norm(Ys_project[0] - Ys_project[1])
+    #         wandb.log({'f_norm': f_norm}, step=iter)
 
-            if tp_planT:
-                wandb.log({self.check_diff(tp_plan, tp_planT)}, step=iter)
+    #         if tp_planT:
+    #             wandb.log({self.check_diff(tp_plan, tp_planT)}, step=iter)
 
-    def run_1iter(self, Xs, align0, iter_num=0):
+    def run_1iter(self, Xs, align0, iter_num=0, algo='preserved'):
         Ys = self.seqInp(Xs, align0)
         self.linear_cca.fit(Ys[0], Ys[1], outdim_size=self.outdim_size)
 
@@ -80,7 +80,7 @@ class CcaOT:
         self.change_iter_ot((iter_num + 1) * 10)
 
         tp_plan = self.apply_ot(
-            Xs_project, metric=self.metric, reg=self.reg, numItermax=self.num_iter_ot)
+            Xs_project, metric=self.metric, reg=self.reg, numItermax=self.num_iter_ot, algo=algo)
 
         align = self.get_align_path(tp_plan)
 
@@ -104,14 +104,18 @@ class CcaOT:
         Returns:
             tp_plan (ndarray): shape (num_samples, num_samples)
         """
-        metric = kwargs.get('metric', 'euclidean')
-        reg = kwargs.get('reg', 1e-1)
-        numItermax = kwargs.get('numItermax', 1000)
-        algo = kwargs.get('algo', ' preserved')
+        metric = kwargs.pop('metric', 'euclidean')
+        reg = kwargs.pop('reg', 1e-1)
+        numItermax = kwargs.pop('numItermax', 1000)
+        algo = kwargs.pop('algo', 'preserved')
+        lambda1 = kwargs.pop('lambda1', 100)
+        lambda2 = kwargs.pop('lambda2', 2)
+        if kwargs:
+            raise TypeError('Unexpected **kwargs: %r' % kwargs)
 
         if algo == 'preserved':
             distance, tp_plan = opw(
-                Xs[0], Xs[1], lambda1=50, lambda2=reg, delta=1)
+                Xs[0], Xs[1], lambda1=lambda1, lambda2=lambda2, delta=1)
 
         else:  # algo == 'regularized':
             cost_matrix = ot.dist(Xs[0], Xs[1], metric=metric)
