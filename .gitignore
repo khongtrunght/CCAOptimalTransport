@@ -7,3 +7,4 @@ src/wandb/
 .idea/
 test/
 data/*.gz
+src/test.ipynb

@@ -179,7 +179,7 @@ def load_data_adu(num_data_point=1000, normalize=False, permutation=False):
         val2 = scaler.transform(val2)
 
     train_choice = np.random.choice(50000, num_data_point, replace=False)
-    test_choice = np.random.choice(10000, num_data_point, replace=False)
+    test_choice = np.random.choice(10000, num_data_point//5, replace=False)
 
     # train1, train2, val1, val2 = train1[:num_data_point], train2[:
     #  num_data_point], val1[:num_data_point], val2[:num_data_point]
@@ -283,6 +283,10 @@ ot_args.add_argument('-d', '--delta', type=float, default=1,
 
 exp_args.add_argument('--init', type=str, default='random')
 exp_args.add_argument('--draw-tsne-step', type=int, default=10)
+exp_args.add_argument('--normalize', type=bool,
+                      default=True, help="Normalize input data")
+exp_args.add_argument('--permutation', type=bool,
+                      default=True, help="Permute input data")
 
 args = parser.parse_args()
 print(args)
