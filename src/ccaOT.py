@@ -244,7 +244,7 @@ def main(args):
             tsne_plot(val1_project, label_val1, 2)
             wandb.log({'tsne_val1': wandb.Image(plt)}, step=iter)
             plt.clf()
-            if f_norm_previous - f_norm < 1e-2:
+            if abs(f_norm_previous - f_norm) < 1e-2:
                 break
             f_norm_previous = f_norm
         align0 = align
