@@ -179,7 +179,7 @@ def load_data_adu(num_data_point=1000, normalize=False, permutation=False):
         val2 = scaler.transform(val2)
 
     train_choice = np.random.choice(50000, num_data_point, replace=False)
-    test_choice = np.random.choice(10000, num_data_point//5, replace=False)
+    test_choice = np.random.choice(10000, num_data_point, replace=False)
 
     # train1, train2, val1, val2 = train1[:num_data_point], train2[:
     #  num_data_point], val1[:num_data_point], val2[:num_data_point]
@@ -246,8 +246,9 @@ def main(args):
             plt.clf()
             if abs(f_norm_previous - f_norm) < 1e-2:
                 break
-            f_norm_previous = f_norm
+
         align0 = align
+        f_norm_previous = f_norm
 
     wandb.finish()
 
