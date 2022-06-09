@@ -56,6 +56,7 @@ def opw(X, Y, lambda1=50, lambda2=0.1, delta=1, metric='euclidean'):
 
     while compt < maxIter:
         u = a / (K @ (b / (K.T @ u)))
+        assert not np.isnan(u).any(), "nan in u"
         compt += 1
 
         if compt % 20 == 0 or compt == maxIter:

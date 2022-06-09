@@ -12,6 +12,7 @@ from utils import load_data
 import seaborn as sns
 from opw import opw
 import argparse
+from sklearn import preprocessing
 
 
 def cross_entropy(predictions, targets, epsilon=1e-12):
@@ -144,27 +145,41 @@ class CcaOT:
         return cross_entropy(plan.flat, true_plan.flat)
 
 
-def load_data_adu(num_data_point=1000):
+def load_data_adu(num_data_point=1000, normalize=False, permutation=False):
     data1 = load_data("data/noisymnist_view1.gz")
     data2 = load_data("data/noisymnist_view2.gz")
 
-    pca = PCA(n_components=123)
+    # pca = PCA(n_components=123)
 
     train1, train2 = data1[0][0], data2[0][0]
     val1, val2 = data1[1][0], data2[1][0]
     test1, test2 = data1[2][0], data2[2][0]
 
-    train1 = pca.fit_transform(train1)
-    val1 = pca.transform(val1)
-    train2 = pca.fit_transform(train2)
-    val2 = pca.transform(val2)
-
     label_train1, label_train2 = data1[0][1], data2[0][1]
     label_val1, label_val2 = data1[1][1], data2[1][1]
     label_test1, label_test2 = data1[2][1], data2[2][1]
 
+    if permutation:
+        perm_train_init = np.random.permutation(train1.shape[0])
+        perm_val_init = np.random.permutation(val1.shape[0])
+        train1, label_train1 = train1[perm_train_init], label_train1[perm_train_init]
+        train2, label_train2 = train2[perm_train_init], label_train2[perm_train_init]
+        val1, label_val1 = val1[perm_val_init], label_val1[perm_val_init]
+        val2, label_val2 = val2[perm_val_init], label_val2[perm_val_init]
+
+    # train1 = pca.fit_transform(train1)
+    # val1 = pca.transform(val1)
+    # train2 = pca.fit_transform(train2)
+    # val2 = pca.transform(val2)
+    if normalize:
+        scaler = preprocessing.StandardScaler()
+        train1 = scaler.fit_transform(train1)
+        val1 = scaler.transform(val1)
+        train2 = scaler.fit_transform(train2)
+        val2 = scaler.transform(val2)
+
     train_choice = np.random.choice(50000, num_data_point, replace=False)
-    test_choice = np.random.choice(10000, num_data_point//10, replace=False)
+    test_choice = np.random.choice(10000, num_data_point, replace=False)
 
     # train1, train2, val1, val2 = train1[:num_data_point], train2[:
     #  num_data_point], val1[:num_data_point], val2[:num_data_point]
@@ -174,6 +189,9 @@ def load_data_adu(num_data_point=1000):
     train1, train2, val1, val2 = train1[train_choice], train2[train_choice], val1[test_choice], val2[test_choice]
     label_train1, label_train2, label_val1, label_val2 = label_train1[
         train_choice], label_train2[train_choice], label_val1[test_choice], label_val2[test_choice]
+
+    print(
+        f"Finished loading data, Shape: Train1 {train1.shape}, Train2 {train2.shape}, Val1 {val1.shape}, Val2 {val2.shape}")
 
     return train1, train2, val1, val2, label_train1, label_train2, label_val1, label_val2
 
@@ -202,6 +220,7 @@ def main(args):
         align0 = np.stack([np.arange(args.num_data_point),
                            np.arange(args.num_data_point)], axis=0)
 
+    f_norm_previous = np.inf
     for iter in range(args.num_iter_max):
         align, tp_plan = ccaot.run_1iter(
             Xs, align0, iter_num=iter, lambda1=args.lambda1, lambda2=args.lambda2, delta=args.delta)
@@ -212,7 +231,11 @@ def main(args):
         wandb.log({'f_norm': f_norm}, step=iter)
         wandb.log({'transport_loss': ccaot.check_diff(
             tp_plan, tp_planT)}, step=iter)
-        sns.heatmap(tp_plan)
+        if iter == 0:
+            sns.heatmap(tp_planT[:40, :40])
+            wandb.log({"tp_planT": wandb.Image(plt)}, step=iter)
+            plt.clf()
+        sns.heatmap(tp_plan[:40, :40])  # , cmap='viridis'
         wandb.log({'tp_plan': wandb.Image(plt)}, step=iter)
         plt.clf()
         if iter % args.draw_tsne_step == 0:
@@ -221,6 +244,9 @@ def main(args):
             tsne_plot(val1_project, label_val1, 2)
             wandb.log({'tsne_val1': wandb.Image(plt)}, step=iter)
             plt.clf()
+            if f_norm_previous - f_norm < 1e-2:
+                break
+            f_norm_previous = f_norm
         align0 = align
 
     wandb.finish()
@@ -230,7 +256,7 @@ def tsne_plot(data, label, dim_size=2):
     tsne = TSNE(n_components=dim_size)
     after_tsne = tsne.fit_transform(data)
     # plt.scatter(after_tsne[:, 0], after_tsne[:, 1], c=label)
-    sns.scatterplot(after_tsne[:, 0], after_tsne[:, 1],
+    sns.scatterplot(x=after_tsne[:, 0], y=after_tsne[:, 1],
                     palette=sns.color_palette("hls", 10), hue=label)
     del tsne  # clear memory
 
