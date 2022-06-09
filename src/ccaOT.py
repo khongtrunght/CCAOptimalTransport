@@ -201,7 +201,7 @@ def main(args):
     init = 'true'
 
     train1, train2, val1, val2, label_train1, label_train2, label_val1, label_val2 = load_data_adu(
-        num_data_point=args.num_data_point)
+        num_data_point=args.num_data_point, normalize=args.normalize, permutation=args.permutation)
 
     Xs, label_train1, label_train2, alignT = permutation_data(
         train1, train2, label_train1, label_train2, method='preserved')
