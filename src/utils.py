@@ -70,7 +70,7 @@ def initialze(alignT, method='random'):
 
         permutation_wrong_first = alignT[0, part]
         align0 = np.stack(
-            [permutation_wrong_first, np.range(alignT.shape[0])], axis=0)
+            [permutation_wrong_first, np.arange(alignT.shape[0])], axis=0)
 
     elif method == "true":
         align0 = alignT.copy()
