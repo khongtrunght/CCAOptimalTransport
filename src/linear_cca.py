@@ -6,6 +6,7 @@ class linear_cca():
     def __init__(self):
         self.w = [None, None]
         self.m = [None, None]
+        self.std = [None, None]
 
     def fit(self, H1, H2, outdim_size):
         """
@@ -26,6 +27,9 @@ class linear_cca():
 
         self.m[0] = numpy.mean(H1, axis=0)
         self.m[1] = numpy.mean(H2, axis=0)
+        # test std = 1
+        self.std[0] = numpy.ones(H1.shape[1])
+        self.std[1] = numpy.ones(H2.shape[1])
         H1bar = H1 - numpy.tile(self.m[0], (m, 1))
         H2bar = H2 - numpy.tile(self.m[1], (m, 1))
 

@@ -46,6 +46,11 @@ def opw(X, Y, lambda1=50, lambda2=0.1, delta=1, metric='euclidean'):
     S = lambda1 / ((row - col) ** 2 + 1)
 
     D = ot.dist(X, Y, metric=metric)
+
+    # Clip the distance matrix to prevent numerical errors
+    max_distance = 200 * lambda2
+    D = np.clip(D, 0, max_distance)
+
     K = np.exp((S - D) / lambda2) * P
 
     a = np.ones((N, 1)) / N

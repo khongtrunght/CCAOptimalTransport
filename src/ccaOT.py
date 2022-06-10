@@ -3,6 +3,7 @@
 from matplotlib import pyplot as plt
 import ot
 import numpy as np
+from sklearn.cross_decomposition import CCA
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
 from linear_cca import linear_cca
@@ -37,13 +38,22 @@ class CcaOT:
         self.reg = reg
         self.metric = metric
         self.linear_cca = linear_cca()
+        self.cca_sklearn = CCA(n_components=outdim_size)
         self.outdim_size = outdim_size
 
     def run_1iter(self, Xs, align0, iter_num=0, algo='preserved', **kwargs):
         Ys = self.seqInp(Xs, align0)
-        self.linear_cca.fit(Ys[0], Ys[1], outdim_size=self.outdim_size)
 
+        # --------- Cua tac gia ---------------
+        self.linear_cca.fit(Ys[0], Ys[1], outdim_size=self.outdim_size)
         Xs_project = self.linear_cca.transform(Xs[0], Xs[1])
+
+        # ----------- Cua sklearn -----------------
+        # print("Test , Ys shape", Ys[0].shape, Ys[1].shape)
+        # self.cca_sklearn.fit(Ys[0], Ys[1])
+        # Xs0_c = self.cca_sklearn.transform(Xs[0])
+        # print("Xs0_c shape", Xs0_c.shape)
+        # exit()
 
         self.change_iter_ot((iter_num + 1) * 10)
 
@@ -172,11 +182,12 @@ def load_data_adu(num_data_point=1000, normalize=False, permutation=False):
     # train2 = pca.fit_transform(train2)
     # val2 = pca.transform(val2)
     if normalize:
-        scaler = preprocessing.StandardScaler()
-        train1 = scaler.fit_transform(train1)
-        val1 = scaler.transform(val1)
-        train2 = scaler.fit_transform(train2)
-        val2 = scaler.transform(val2)
+        # scaler = preprocessing.StandardScaler()
+        # train1 = scaler.fit_transform(train1)
+        # val1 = scaler.transform(val1)
+        # train2 = scaler.fit_transform(train2)
+        # val2 = scaler.transform(val2)
+        pass
 
     train_choice = np.random.choice(50000, num_data_point, replace=False)
     test_choice = np.random.choice(10000, num_data_point, replace=False)

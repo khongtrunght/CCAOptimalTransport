@@ -75,7 +75,7 @@ def initialze(alignT, method='random'):
     elif method == "true":
         align0 = alignT.copy()
     else:
-        align0 = np.stack([np.arange(alignT.shape[0]),
-                          np.arange(alignT.shape[0])], axis=0)
+        align0 = np.stack([np.arange(alignT.shape[1]),
+                          np.arange(alignT.shape[1])], axis=0)
 
     return align0
