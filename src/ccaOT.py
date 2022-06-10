@@ -190,7 +190,7 @@ def load_data_adu(num_data_point=1000, normalize=False, permutation=False):
         pass
 
     train_choice = np.random.choice(50000, num_data_point, replace=False)
-    test_choice = np.random.choice(10000, num_data_point, replace=False)
+    test_choice = np.random.choice(10000, num_data_point//5, replace=False)
 
     # train1, train2, val1, val2 = train1[:num_data_point], train2[:
     #  num_data_point], val1[:num_data_point], val2[:num_data_point]
