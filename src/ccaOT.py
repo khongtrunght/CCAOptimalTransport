@@ -242,6 +242,13 @@ def main(args):
         wandb.log({'f_norm': f_norm}, step=iter)
         wandb.log({'transport_loss': ccaot.check_diff(
             tp_plan, tp_planT)}, step=iter)
+
+        # label loss (cross entropy)
+        label_view1 = label_train1[align]
+        label_view2 = label_train2[align]
+        label_loss = cross_entropy(label_view2, label_view1)
+        wandb.log({'label_loss': label_loss}, step=iter)
+
         if iter == 0:
             sns.heatmap(tp_planT[:40, :40])
             wandb.log({"tp_planT": wandb.Image(plt)}, step=iter)
