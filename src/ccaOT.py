@@ -215,7 +215,7 @@ def main(args):
         num_data_point=args.num_data_point, normalize=args.normalize, permutation=args.permutation)
 
     Xs, label_train1, label_train2, alignT = permutation_data(
-        train1, train2, label_train1, label_train2, method='preserved')
+        train1, train2, label_train1, label_train2, method=args.permutation_method)
 
     align0 = initialze(alignT, method=args.init)
 
@@ -306,6 +306,8 @@ exp_args.add_argument('--normalize', type=bool,
                       default=True, help="Normalize input data")
 exp_args.add_argument('--permutation', type=bool,
                       default=True, help="Permute input data")
+exp_args.add_argument('--permutation-method', type=str,
+                      default='partial-preserved')
 
 args = parser.parse_args()
 print(args)
