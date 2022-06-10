@@ -54,6 +54,23 @@ def permutation_data(X, Y, label_X, label_Y, method='preserved'):
         init = np.arange(lenY)
         perm = np.concatenate([np.random.permutation(
             init[i: min(i + 10, lenY)]) for i in range(0, lenY-1, 10)])
+    elif method == 'partial-preserved':
+        N = Y.shape[0]
+        group_len = 10
+        num_permute = 4
+        permute_array = np.stack([np.random.choice(
+            group_len, num_permute, replace=False) for _ in range(N//group_len)])
+        permute_array_true = np.mgrid[0:N//group_len,
+                                      0:num_permute][0] * group_len + permute_array
+        permute_sq = np.stack([np.random.permutation(num_permute)
+                              for _ in range(N//group_len)])
+        row = np.mgrid[0:N//group_len, 0:num_permute][0]
+        location_array = np.stack([row, permute_sq], axis=2)
+        permute_array_after = permute_array_true[location_array[:,
+                                                                :, 0], location_array[:, :, 1]]
+        # Y[permute_array_true] = Y[permute_array_after]
+        perm = np.arange(N)
+        perm[permute_array_true] = perm[permute_array_after]
 
     Y = Y[perm]
     label_Y = label_Y[perm]
@@ -74,6 +91,7 @@ def initialze(alignT, method='random'):
 
     elif method == "true":
         align0 = alignT.copy()
+
     else:
         align0 = np.stack([np.arange(alignT.shape[1]),
                           np.arange(alignT.shape[1])], axis=0)
