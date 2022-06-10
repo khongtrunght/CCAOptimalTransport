@@ -64,8 +64,8 @@ def permutation_data(X, Y, label_X, label_Y, method='preserved'):
 
 def initialze(alignT, method='random'):
     if method == 'partial':
-        first_part = np.random.permutation(alignT.shape[0]//2)
-        second_part = np.arange(alignT.shape[0]//2, alignT.shape[0])
+        first_part = np.random.permutation(alignT.shape[1]//2)
+        second_part = np.arange(alignT.shape[1]//2, alignT.shape[1])
         part = np.concatenate([first_part, second_part], axis=0)
 
         permutation_wrong_first = alignT[0, part]
