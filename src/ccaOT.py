@@ -259,7 +259,10 @@ def main():
         if iter % draw_step == 0:
             # wandb.log(
             #     {"project_matrix_view1":  ccaot.linear_cca.w[0], "mean_view1": ccaot.linear_cca.m[0]}, step=iter)
-            tsne_plot(val1_project, label_val1, 2)
+            projected_data = np.concatenate([val1_project, val2_project], axis=0)
+            projected_label = np.concatenate([label_val1, label_val2], axis=0)
+            tsne_plot(projected_data, projected_label)
+            # tsne_plot(val1_project, label_val1, 2)
             wandb.log({'tsne_val1': wandb.Image(plt)}, step=iter)
             plt.clf()
         align0 = align
