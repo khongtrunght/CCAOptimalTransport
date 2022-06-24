@@ -208,7 +208,9 @@ def main(args):
             projected_data = np.concatenate(
                 [val1_project, val2_project], axis=0)
             projected_labels = np.concatenate([label_val1, label_val2], axis=0)
-            tsne_plot(projected_data, projected_labels)
+            mask_val = np.concatenate(
+                [np.ones(val1_project.shape[0]), np.zeros(val2_project.shape[0])], axis=0)
+            tsne_plot(projected_data, projected_labels, mask=mask_val)
             # tsne_plot(val1_project, label_val1, 2)
             wandb.log({'tsne_val1': wandb.Image(plt)}, step=iter)
             plt.clf()
@@ -221,12 +223,12 @@ def main(args):
     wandb.finish()
 
 
-def tsne_plot(data, label, dim_size=2):
+def tsne_plot(data, label, dim_size=2, mask=None):
     tsne = TSNE(n_components=dim_size)
     after_tsne = tsne.fit_transform(data)
     # plt.scatter(after_tsne[:, 0], after_tsne[:, 1], c=label)
     sns.scatterplot(x=after_tsne[:, 0], y=after_tsne[:, 1],
-                    palette=sns.color_palette("hls", 10), hue=label)
+                    palette=sns.color_palette("hls", 10), hue=label, style=mask)
     del tsne  # clear memory
 
 
